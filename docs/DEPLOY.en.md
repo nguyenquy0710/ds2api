@@ -1,6 +1,6 @@
 # DS2API Deployment Guide
 
-Language: [中文](DEPLOY.md) | [English](DEPLOY.en.md)
+Language: [中文](DEPLOY.md) | [English](DEPLOY.en.md) | [Tiếng Việt](DEPLOY.vi.md)
 
 This guide covers all deployment methods for the current Go-based codebase.
 

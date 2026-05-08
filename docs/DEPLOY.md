@@ -1,6 +1,6 @@
 # DS2API 部署指南
 
-语言 / Language: [中文](DEPLOY.md) | [English](DEPLOY.en.md)
+语言 / Language: [中文](DEPLOY.md) | [English](DEPLOY.en.md) | [Tiếng Việt](DEPLOY.vi.md)
 
 本指南基于当前 Go 代码库，详细说明各种部署方式。
 

@@ -1,6 +1,6 @@
 # DS2API 文档导航 | Documentation Index
 
-语言 / Language: [中文](README.md) | [English](README.md#english)
+语言 / Language: [中文](README.md) | [English](README.md#english) | [Tiếng Việt](README.vi.md)
 
 ## 中文
 

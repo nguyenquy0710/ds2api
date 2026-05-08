@@ -1,9 +1,17 @@
 import { useI18n } from '../i18n'
 
+const ORDER = ['vi', 'en', 'zh']
+const LABEL_KEY = {
+    vi: 'language.vietnamese',
+    en: 'language.english',
+    zh: 'language.chinese',
+}
+
 export default function LanguageToggle({ className = '' }) {
     const { lang, setLang, t } = useI18n()
-    const nextLang = lang === 'zh' ? 'en' : 'zh'
-    const label = nextLang === 'zh' ? t('language.chinese') : t('language.english')
+    const currentIndex = ORDER.indexOf(lang)
+    const nextLang = ORDER[(currentIndex + 1) % ORDER.length] || 'vi'
+    const label = t(LABEL_KEY[nextLang])
 
     return (
         <button

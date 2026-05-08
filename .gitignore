@@ -39,10 +39,13 @@ internal/webui/assets/admin/
 # Go compiled binaries
 ds2api
 ds2api-tests
+*.exe
 
 # Environment
 .env.local
 .env.*.local
+.env.*.production
+.env.production
 
 # Testing
 .coverage
@@ -63,6 +66,11 @@ CLAUDE.local.md
 
 # Local tool bootstrap cache
 .tmp/
+
+# Local helper scripts and accidental nested clones (do not commit upstream)
+run.bat
+run.sh
+/dsapi/
 
 # Chat history
 data/
