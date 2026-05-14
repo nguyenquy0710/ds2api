@@ -69,6 +69,7 @@ func (p *Pool) canAcquireIDLocked(accountID string) bool {
 			return false
 		}
 		delete(p.sleepUntil, accountID)
+		delete(p.sleepTimers, accountID)
 	}
 	if p.inUse[accountID] >= p.maxInflightPerAccount {
 		return false

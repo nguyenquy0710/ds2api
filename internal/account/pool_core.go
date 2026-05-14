@@ -14,6 +14,7 @@ type Pool struct {
 	queue                  []string
 	inUse                  map[string]int
 	sleepUntil             map[string]time.Time
+	sleepTimers            map[string]*time.Timer
 	waiters                []chan struct{}
 	maxInflightPerAccount  int
 	recommendedConcurrency int
@@ -66,10 +67,16 @@ func (p *Pool) Reset() {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	for _, timer := range p.sleepTimers {
+		if timer != nil {
+			timer.Stop()
+		}
+	}
 	p.drainWaitersLocked()
 	p.queue = ids
 	p.inUse = map[string]int{}
 	p.sleepUntil = map[string]time.Time{}
+	p.sleepTimers = map[string]*time.Timer{}
 	p.recommendedConcurrency = recommended
 	p.maxQueueSize = queueLimit
 	p.globalMaxInflight = globalLimit
@@ -92,15 +99,24 @@ func (p *Pool) Sleep(accountID string, duration time.Duration) {
 	if current, ok := p.sleepUntil[accountID]; !ok || current.Before(until) {
 		p.sleepUntil[accountID] = until
 	}
-	p.mu.Unlock()
-	time.AfterFunc(duration, func() {
+	if existing := p.sleepTimers[accountID]; existing != nil {
+		existing.Stop()
+	}
+	var timer *time.Timer
+	timer = time.AfterFunc(duration, func() {
 		p.mu.Lock()
 		defer p.mu.Unlock()
+		if p.sleepTimers[accountID] != timer {
+			return
+		}
 		if wakeAt, ok := p.sleepUntil[accountID]; ok && !time.Now().Before(wakeAt) {
 			delete(p.sleepUntil, accountID)
 		}
+		delete(p.sleepTimers, accountID)
 		p.notifyWaiterLocked()
 	})
+	p.sleepTimers[accountID] = timer
+	p.mu.Unlock()
 }
 
 func (p *Pool) Release(accountID string) {
