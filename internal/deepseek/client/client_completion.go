@@ -13,7 +13,7 @@ import (
 	trans "ds2api/internal/deepseek/transport"
 )
 
-var nonOKManagedAccountSleep = time.Second
+const nonOKManagedAccountSleep = time.Second
 
 func (c *Client) CallCompletion(ctx context.Context, a *auth.RequestAuth, payload map[string]any, powResp string, maxAttempts int) (*http.Response, error) {
 	_ = maxAttempts
