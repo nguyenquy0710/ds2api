@@ -3,6 +3,7 @@ package account
 import (
 	"sort"
 	"sync"
+	"time"
 
 	"ds2api/internal/config"
 )
@@ -12,6 +13,7 @@ type Pool struct {
 	mu                     sync.Mutex
 	queue                  []string
 	inUse                  map[string]int
+	sleepUntil             map[string]time.Time
 	waiters                []chan struct{}
 	maxInflightPerAccount  int
 	recommendedConcurrency int
@@ -67,6 +69,7 @@ func (p *Pool) Reset() {
 	p.drainWaitersLocked()
 	p.queue = ids
 	p.inUse = map[string]int{}
+	p.sleepUntil = map[string]time.Time{}
 	p.recommendedConcurrency = recommended
 	p.maxQueueSize = queueLimit
 	p.globalMaxInflight = globalLimit
@@ -78,6 +81,26 @@ func (p *Pool) Reset() {
 		"recommended_concurrency", p.recommendedConcurrency,
 		"max_queue_size", p.maxQueueSize,
 	)
+}
+
+func (p *Pool) Sleep(accountID string, duration time.Duration) {
+	if p == nil || accountID == "" || duration <= 0 {
+		return
+	}
+	until := time.Now().Add(duration)
+	p.mu.Lock()
+	if current, ok := p.sleepUntil[accountID]; !ok || current.Before(until) {
+		p.sleepUntil[accountID] = until
+	}
+	p.mu.Unlock()
+	time.AfterFunc(duration, func() {
+		p.mu.Lock()
+		defer p.mu.Unlock()
+		if wakeAt, ok := p.sleepUntil[accountID]; ok && !time.Now().Before(wakeAt) {
+			delete(p.sleepUntil, accountID)
+		}
+		p.notifyWaiterLocked()
+	})
 }
 
 func (p *Pool) Release(accountID string) {
