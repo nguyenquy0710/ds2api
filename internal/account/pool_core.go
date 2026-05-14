@@ -96,14 +96,21 @@ func (p *Pool) Sleep(accountID string, duration time.Duration) {
 	}
 	until := time.Now().Add(duration)
 	p.mu.Lock()
-	if current, ok := p.sleepUntil[accountID]; !ok || current.Before(until) {
-		p.sleepUntil[accountID] = until
+	current, ok := p.sleepUntil[accountID]
+	if ok && !current.Before(until) {
+		p.mu.Unlock()
+		return
 	}
+	p.sleepUntil[accountID] = until
 	if existing := p.sleepTimers[accountID]; existing != nil {
 		existing.Stop()
 	}
+	delay := time.Until(p.sleepUntil[accountID])
+	if delay < 0 {
+		delay = 0
+	}
 	var timer *time.Timer
-	timer = time.AfterFunc(duration, func() {
+	timer = time.AfterFunc(delay, func() {
 		p.mu.Lock()
 		defer p.mu.Unlock()
 		if p.sleepTimers[accountID] != timer {
