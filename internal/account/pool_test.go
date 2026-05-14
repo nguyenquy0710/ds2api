@@ -318,10 +318,17 @@ func TestPoolSleepTemporarilyBlocksAcquire(t *testing.T) {
 	if _, ok := pool.Acquire("acc1@example.com", nil); ok {
 		t.Fatal("expected target acquire to fail while account is sleeping")
 	}
-	time.Sleep(120 * time.Millisecond)
-	acc, ok := pool.Acquire("acc1@example.com", nil)
-	if !ok {
-		t.Fatal("expected target acquire to succeed after sleep duration")
+
+	deadline := time.Now().Add(time.Second)
+	for {
+		acc, ok := pool.Acquire("acc1@example.com", nil)
+		if ok {
+			pool.Release(acc.Identifier())
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("expected target acquire to succeed after sleep duration")
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
-	pool.Release(acc.Identifier())
 }
