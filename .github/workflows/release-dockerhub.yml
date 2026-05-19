@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version_type:
-        description: '版本类型'
+        description: "版本类型"
         required: true
-        default: 'patch'
+        default: "patch"
         type: choice
         options:
           - patch

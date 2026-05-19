@@ -311,3 +311,24 @@ func TestPoolAcquireWaitQueueLimitReturnsFalse(t *testing.T) {
 		t.Fatal("timed out waiting for first queued acquire")
 	}
 }
+
+func TestPoolSleepTemporarilyBlocksAcquire(t *testing.T) {
+	pool := newSingleAccountPoolForTest(t, "1")
+	pool.Sleep("acc1@example.com", 80*time.Millisecond)
+	if _, ok := pool.Acquire("acc1@example.com", nil); ok {
+		t.Fatal("expected target acquire to fail while account is sleeping")
+	}
+
+	deadline := time.Now().Add(time.Second)
+	for {
+		acc, ok := pool.Acquire("acc1@example.com", nil)
+		if ok {
+			pool.Release(acc.Identifier())
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("expected target acquire to succeed after sleep duration")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}

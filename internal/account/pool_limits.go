@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (p *Pool) ApplyRuntimeLimits(maxInflightPerAccount, maxQueueSize, globalMaxInflight int) {
@@ -62,6 +63,13 @@ func maxQueueFromEnv(defaultSize int) int {
 func (p *Pool) canAcquireIDLocked(accountID string) bool {
 	if accountID == "" {
 		return false
+	}
+	if sleepUntil, ok := p.sleepUntil[accountID]; ok {
+		if time.Now().Before(sleepUntil) {
+			return false
+		}
+		delete(p.sleepUntil, accountID)
+		delete(p.sleepTimers, accountID)
 	}
 	if p.inUse[accountID] >= p.maxInflightPerAccount {
 		return false
