@@ -12,10 +12,6 @@ WORKDIR /app
 ARG TARGETOS
 ARG TARGETARCH
 ARG BUILD_VERSION
-COPY --from=node:24 /usr/local/bin/node /usr/local/bin/
-COPY --from=node:24 /usr/local/bin/npm /usr/local/bin/
-COPY --from=node:24 /usr/local/bin/npx /usr/local/bin/
-COPY --from=node:24 /usr/local/lib/node_modules /usr/local/lib/node_modules
 COPY go.mod go.sum* ./
 RUN go mod download
 COPY . .
