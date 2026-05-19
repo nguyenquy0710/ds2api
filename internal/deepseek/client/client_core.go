@@ -25,6 +25,7 @@ type Client struct {
 	fallback   *http.Client
 	fallbackS  *http.Client
 	maxRetries int
+	nonOKSleep time.Duration // cooldown duration on non-200 completion; 0 means use default
 
 	proxyClientsMu sync.RWMutex
 	proxyClients   map[string]requestClients

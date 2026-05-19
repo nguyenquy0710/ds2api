@@ -13,7 +13,7 @@ import (
 	trans "ds2api/internal/deepseek/transport"
 )
 
-const nonOKManagedAccountSleep = time.Second
+const defaultNonOKManagedAccountSleep = time.Second
 
 func (c *Client) CallCompletion(ctx context.Context, a *auth.RequestAuth, payload map[string]any, powResp string, maxAttempts int) (*http.Response, error) {
 	_ = maxAttempts
@@ -29,7 +29,11 @@ func (c *Client) CallCompletion(ctx context.Context, a *auth.RequestAuth, payloa
 		resp.Body = captureSession.WrapBody(resp.Body, resp.StatusCode)
 	}
 	if resp.StatusCode != http.StatusOK && c.Auth != nil {
-		c.Auth.SleepAccount(a, nonOKManagedAccountSleep)
+		sleep := c.nonOKSleep
+		if sleep <= 0 {
+			sleep = defaultNonOKManagedAccountSleep
+		}
+		c.Auth.SleepAccount(a, sleep)
 	}
 	if resp.StatusCode == http.StatusOK {
 		resp = c.wrapCompletionWithAutoContinue(ctx, a, payload, powResp, resp)

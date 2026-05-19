@@ -54,7 +54,8 @@ func TestCallCompletionNon200SleepsManagedAccountTemporarily(t *testing.T) {
 		t.Fatalf("determine failed: %v", err)
 	}
 	client := &Client{
-		Auth: resolver,
+		Auth:       resolver,
+		nonOKSleep: 60 * time.Millisecond,
 		stream: doerFunc(func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusInternalServerError,
@@ -62,9 +63,6 @@ func TestCallCompletionNon200SleepsManagedAccountTemporarily(t *testing.T) {
 			}, nil
 		}),
 	}
-	previousSleep := nonOKManagedAccountSleep
-	nonOKManagedAccountSleep = 60 * time.Millisecond
-	defer func() { nonOKManagedAccountSleep = previousSleep }()
 
 	resp, err := client.CallCompletion(context.Background(), a, map[string]any{"chat_session_id": "s1"}, "pow", 1)
 	if err != nil {
