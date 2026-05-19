@@ -30,7 +30,7 @@ func (c *Client) CallCompletion(ctx context.Context, a *auth.RequestAuth, payloa
 	}
 	if resp.StatusCode != http.StatusOK && c.Auth != nil {
 		sleep := c.nonOKSleep
-		if sleep <= 0 {
+		if sleep == 0 {
 			sleep = defaultNonOKManagedAccountSleep
 		}
 		c.Auth.SleepAccount(a, sleep)
